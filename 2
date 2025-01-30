@@ -1,0 +1,75 @@
+db <- read.csv("https://tanjakec.github.io/CWData/Diabetes.csv")
+
+head(db)
+attach(db)
+summary(db)
+
+
+ggpairs(db)
+
+glimpse(db)
+
+db[, 1] <- as.factor(db[, 1])
+db[, 2] <- as.factor(db[, 2])
+db[, 3] <- as.factor(db[, 3])
+db[, 5] <- as.factor(db[, 5])
+db[, 6] <- as.factor(db[, 6])
+
+set.seed(123)
+split_idx = sample(nrow(db), 120)
+db_train = db[split_idx, ]
+db_test = db[-split_idx, ]
+
+ggpairs(db)
+
+lrmodel1 <- glm(Diabetes ~ HighBP + HighChol + BMI + Smoker + Fruits + Age, data = db_train, family = binomial(logit))
+lrmodel1
+summary(lrmodel1)
+
+G_calc <- lrmodel1$null.deviance - lrmodel1$deviance
+Gdf <- lrmodel1$df.null - lrmodel1$df.residual
+pscl::pR2(lrmodel1)
+
+G_calc
+
+qchisq(.95, df = Gdf)
+
+pchisq(G_calc, Gdf)
+
+anova(lrmodel1, test="Chisq")
+
+lrmodel2 <- glm(Diabetes ~ HighBP + HighChol + BMI + Age, data = db_train, family = binomial(logit))
+lrmodel2
+summary(lrmodel2)
+
+G_calc <- lrmodel2$null.deviance - lrmodel2$deviance
+Gdf <- lrmodel2$df.null - lrmodel2$df.residual
+pscl::pR2(lrmodel2)
+
+G_calc
+
+qchisq(.95, df = Gdf)
+
+- pchisq(G_calc, Gdf)
+
+anova(lrmodel2, test="Chisq")
+
+link_pr <- round(predict(lrmodel2,  db_test, type = "link"), 2)
+link_pr
+
+response_pr <- round(predict(lrmodel2,  db_test, type = "response"), 2)
+
+t(db_test$Diabetes)
+
+coefficients(lrmodel2)
+
+link_pr <- round(predict(lrmodel2,  db_test, type = "link"), 2)
+link_pr
+
+response_pr <- round(predict(lrmodel2,  db_test, type = "response"), 2)
+
+t(db_test$Diabetes)
+
+how_well <- data.frame(response_pr, db_test$Diabetes)
+
+how_well
